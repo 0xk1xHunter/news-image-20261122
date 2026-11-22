@@ -1,27 +1,33 @@
 #!/usr/bin/env python3
-"""Entry point for news-image-20261122.
+"""Copy the committed front-page image into the output directory.
 
-The front page for Sunday 22 November 2026 was drawn in advance by
-draw.py (PIL) and committed as entry.png next to this file. The grader
-runs this program with no network and stdlib only, so all it does is copy
-that committed image to the output directory, byte for byte, every time.
+The entry image is produced by draw.py and committed as entry.png.
+This program just places a copy where the grader expects it:
+the directory named by MAKEFUN_OUTPUT_DIR (or "output" when unset).
+Standard library only.
 """
+
 import os
 import shutil
 import sys
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+SRC = os.path.join(HERE, "entry.png")
+
 
 def main():
-    here = os.path.dirname(os.path.abspath(__file__))
-    source = os.path.join(here, "entry.png")
-    if not os.path.isfile(source):
-        print("missing committed entry.png next to main.py", file=sys.stderr)
+    if not os.path.isfile(SRC):
+        print("entry.png not found next to main.py; run draw.py first",
+              file=sys.stderr)
         return 1
-    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "output")
+    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR") or "output"
+    if not os.path.isabs(out_dir):
+        out_dir = os.path.join(os.getcwd(), out_dir)
     os.makedirs(out_dir, exist_ok=True)
-    target = os.path.join(out_dir, "entry.png")
-    shutil.copyfile(source, target)
-    print("wrote", target)
+    dest = os.path.join(out_dir, "entry.png")
+    shutil.copyfile(SRC, dest)
+    print("copied entry.png (%d bytes) to %s"
+          % (os.path.getsize(dest), dest))
     return 0
 
 
